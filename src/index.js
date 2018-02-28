@@ -3,6 +3,13 @@ import { call } from 'redux-saga/effects';
 const RESTART = '@@saga/RESTART';
 const FAIL = '@@saga/FAIL';
 
+const warn = (disableWarnings, warning) => {
+  if (!disableWarnings) {
+    // eslint-disable-next-line no-console
+    console.warn(warning);
+  }
+};
+
 export default (saga, {
   defaultBehavior = RESTART,
   disableWarnings = false,
@@ -31,17 +38,13 @@ export default (saga, {
           break;
         }
         attempts += 1;
-        if (!disableWarnings) {
-          // eslint-disable-next-line no-console
-          console.warn(`Restarting ${saga.name} because of error`);
-        }
+        warn(disableWarnings, `Restarting ${saga.name} because of error`);
       }
     }
     if (onFail instanceof Function) {
       yield onFail(lastError, saga.name, attempts);
     } else if (!disableWarnings) {
-      // eslint-disable-next-line no-console
-      console.warn(`Saga ${saga.name} failed after ${attempts}/${maxAttempts} attempts without any onFail handler`);
+      warn(disableWarnings, `Saga ${saga.name} failed after ${attempts}/${maxAttempts} attempts without any onFail handler`);
     }
   };
 };
