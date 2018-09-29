@@ -49,12 +49,10 @@
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.11.1",
     "jest": "^23.6.0",
-    "jest-enzyme": "^6.1.2",
     "redux": "^4.0.0",
     "redux-mock-store": "^1.5.3",
     "redux-saga": "^0.16.0",
-    "redux-saga-tester": "^1.0.379",
-    "sinon": "^6.3.4"
+    "redux-saga-tester": "^1.0.379"
   },
   "peerDependencies": {
     "redux-saga": ">=0.14.0",

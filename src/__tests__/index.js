@@ -1,5 +1,4 @@
 import SagaTester from 'redux-saga-tester';
-import sinon from 'sinon';
 
 import { put } from 'redux-saga/effects';
 
@@ -7,12 +6,11 @@ import keepAlive from '..';
 
 describe('Keep alive', () => {
   beforeEach(() => {
-    sinon.stub(console, 'warn');
+    jest.spyOn(console, 'warn').mockImplementation();
   });
 
   afterEach(() => {
-    // eslint-disable-next-line no-console
-    console.warn.restore();
+    jest.clearAllMocks();
   });
 
   it('does not die when options are not passed', () => {
@@ -26,8 +24,8 @@ describe('Keep alive', () => {
   });
 
   it('fails saga when onEachError returns FAIL and triggers onFail', () => {
-    const onEachError = sinon.stub().callsArgWith(0, '@@saga/FAIL');
-    const onFail = sinon.spy();
+    const onEachError = jest.fn().mockImplementation((...args) => args[0]('@@saga/FAIL'));
+    const onFail = jest.fn();
     const sagaTester = new SagaTester({
       initialState: {},
       reducers: {
@@ -49,12 +47,12 @@ describe('Keep alive', () => {
     sagaTester.start(wrapped);
     sagaTester.reset();
     expect(sagaTester.numCalled('TEST_ACTION')).toBe(1);
-    expect(onEachError.calledOnce).toBe(true);
-    expect(onFail.calledOnce).toBe(true);
+    expect(onEachError).toHaveBeenCalledTimes(1);
+    expect(onFail).toHaveBeenCalledTimes(1);
   });
 
   it('does not die on saga fail given onEachError is not function', () => {
-    const onError = sinon.spy();
+    const onError = jest.fn();
     const sagaTester = new SagaTester({
       initialState: {},
       reducers: {
@@ -76,12 +74,11 @@ describe('Keep alive', () => {
     });
     sagaTester.start(wrapped);
     sagaTester.reset();
-    expect(onError.args).toEqual([]);
-    expect(onError.called).toBeFalsy();
+    expect(onError).not.toHaveBeenCalled();
   });
 
   it('does not die on saga fail given onEachError is not function', () => {
-    const onError = sinon.spy();
+    const onError = jest.fn();
     const sagaTester = new SagaTester({
       initialState: {},
       reducers: {
@@ -103,12 +100,11 @@ describe('Keep alive', () => {
     });
     sagaTester.start(wrapped);
     sagaTester.reset();
-    expect(onError.args).toEqual([]);
-    expect(onError.called).toBeFalsy();
+    expect(onError).not.toHaveBeenCalled();
   });
 
   it('triggers console warning on saga fail given onEachError is not function', () => {
-    const onError = sinon.spy();
+    const onError = jest.fn();
     const sagaTester = new SagaTester({
       initialState: {},
       reducers: {
@@ -131,11 +127,11 @@ describe('Keep alive', () => {
     sagaTester.start(wrapped);
     sagaTester.reset();
     // eslint-disable-next-line no-console
-    expect(console.warn.called).toBeTruthy();
+    expect(console.warn).toHaveBeenCalled();
   });
 
   it('triggers console warning on saga restart given warnings are enabled', () => {
-    const onError = sinon.spy();
+    const onError = jest.fn();
     const sagaTester = new SagaTester({
       initialState: {},
       reducers: {
@@ -159,11 +155,11 @@ describe('Keep alive', () => {
     sagaTester.start(wrapped);
     sagaTester.reset();
     // eslint-disable-next-line no-console
-    expect(console.warn.called).toBeTruthy();
+    expect(console.warn).toHaveBeenCalled();
   });
 
   it('triggers console warning on saga restart given warnings are disabled', () => {
-    const onError = sinon.spy();
+    const onError = jest.fn();
     const sagaTester = new SagaTester({
       initialState: {},
       reducers: {
@@ -187,11 +183,11 @@ describe('Keep alive', () => {
     sagaTester.start(wrapped);
     sagaTester.reset();
     // eslint-disable-next-line no-console
-    expect(console.warn.called).toBeTruthy();
+    expect(console.warn).toHaveBeenCalled();
   });
 
   it('does not trigger console warning on saga fail given onEachError is not function and warnings are disabled', () => {
-    const onError = sinon.spy();
+    const onError = jest.fn();
     const sagaTester = new SagaTester({
       initialState: {},
       reducers: {
@@ -215,12 +211,12 @@ describe('Keep alive', () => {
     sagaTester.start(wrapped);
     sagaTester.reset();
     // eslint-disable-next-line no-console
-    expect(console.warn.called).toBeFalsy();
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it('keeps alive saga until maximum number of attempts when not stopped', () => {
-    const onEachError = sinon.stub();
-    const onFail = sinon.spy();
+    const onEachError = jest.fn();
+    const onFail = jest.fn();
     const sagaTester = new SagaTester({
       initialState: {},
       reducers: {
@@ -239,25 +235,23 @@ describe('Keep alive', () => {
       onFail,
     });
 
-    onEachError.returns(false);
+    onEachError.mockReturnValue(false);
     sagaTester.start(wrapped);
     sagaTester.reset();
     expect(sagaTester.numCalled('TEST_ACTION')).toBe(3);
-    expect(onEachError.calledThrice).toBe(true);
-    expect(onEachError.getCall(0).args[0]).toBeInstanceOf(Function);
-    expect(onEachError.getCall(0).args[1]).toEqual(error);
-    expect(onEachError.getCall(0).args[2]).toEqual('testSaga');
-    expect(onEachError.getCall(0).args[3]).toEqual(0);
-    expect(onEachError.getCall(1).args[3]).toEqual(1);
-    expect(onEachError.getCall(2).args[3]).toEqual(2);
-    expect(onFail.calledOnce).toBe(true);
-    expect(onFail.args).toEqual([[
-      error, 'testSaga', 3,
-    ]]);
+    expect(onEachError).toHaveBeenCalledTimes(3);
+    expect(onEachError.mock.calls[0][0]).toBeInstanceOf(Function);
+    expect(onEachError.mock.calls[0][1]).toEqual(error);
+    expect(onEachError.mock.calls[0][2]).toEqual('testSaga');
+    expect(onEachError.mock.calls[0][3]).toEqual(0);
+    expect(onEachError.mock.calls[1][3]).toEqual(1);
+    expect(onEachError.mock.calls[2][3]).toEqual(2);
+    expect(onFail).toHaveBeenCalledTimes(1);
+    expect(onFail).toHaveBeenCalledWith(error, 'testSaga', 3);
   });
 
   it('allows to yield put on fail', () => {
-    const onEachError = sinon.stub();
+    const onEachError = jest.fn();
     const sagaTester = new SagaTester({
       initialState: {},
       reducers: {
@@ -282,7 +276,7 @@ describe('Keep alive', () => {
       onFail,
     });
 
-    onEachError.returns(false);
+    onEachError.mockReturnValue(false);
     sagaTester.start(wrapped);
     sagaTester.reset();
     expect(sagaTester.numCalled('FATAL_ERROR')).toBe(1);

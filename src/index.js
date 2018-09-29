@@ -27,7 +27,7 @@ export default (saga, {
       } catch (error) {
         lastError = error;
         let shouldStop = false;
-        if (onEachError instanceof Function) {
+        if (typeof onEachError === 'function') {
           let nextAction;
           const getNextAction = (action) => { nextAction = action; };
           yield call(onEachError, getNextAction, error, saga.name, attempts);
@@ -41,7 +41,7 @@ export default (saga, {
         warn(disableWarnings, `Restarting ${saga.name} because of error`);
       }
     }
-    if (onFail instanceof Function) {
+    if (typeof onFail === 'function') {
       yield onFail(lastError, saga.name, attempts);
     } else if (!disableWarnings) {
       warn(disableWarnings, `Saga ${saga.name} failed after ${attempts}/${maxAttempts} attempts without any onFail handler`);
